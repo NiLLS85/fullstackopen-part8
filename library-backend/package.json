@@ -1,0 +1,16 @@
+{
+  "name": "library-backend",
+  "version": "1.0.0",
+  "description": "Backend GraphQL de la biblioteca (Full Stack Open, parte 8)",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "author": "NiLLS85",
+  "license": "MIT",
+  "dependencies": {
+    "@apollo/server": "^5.5.2",
+    "graphql": "^16.15.0"
+  },
+  "type": "commonjs"
+}
