@@ -3,7 +3,7 @@ import { useMutation } from '@apollo/client/react'
 import { ADD_BOOK, ALL_AUTHORS, ALL_GENRES } from '../queries'
 import { addBookToCache } from '../cache'
 
-const NewBook = ({ show, setError }) => {
+const NewBook = ({ show, setError, onBookAdded }) => {
   const [title, setTitle] = useState('')
   const [author, setAuthor] = useState('')
   const [published, setPublished] = useState('')
@@ -25,6 +25,8 @@ const NewBook = ({ show, setError }) => {
   const submit = async (event) => {
     event.preventDefault()
 
+    // Se apunta el título para no avisar de un libro que acaba de añadir este mismo usuario
+    onBookAdded(title)
     try {
       await addBook({
         variables: { title, author, published: Number(published), genres },
@@ -49,24 +51,34 @@ const NewBook = ({ show, setError }) => {
   return (
     <div>
       <form onSubmit={submit}>
+        {/* Las etiquetas permiten que las pruebas E2E encuentren cada campo */}
         <div>
-          title
-          <input value={title} onChange={({ target }) => setTitle(target.value)} />
+          <label>
+            title
+            <input value={title} onChange={({ target }) => setTitle(target.value)} />
+          </label>
         </div>
         <div>
-          author
-          <input value={author} onChange={({ target }) => setAuthor(target.value)} />
+          <label>
+            author
+            <input value={author} onChange={({ target }) => setAuthor(target.value)} />
+          </label>
         </div>
         <div>
-          published
-          <input
-            type="number"
-            value={published}
-            onChange={({ target }) => setPublished(target.value)}
-          />
+          <label>
+            published
+            <input
+              type="number"
+              value={published}
+              onChange={({ target }) => setPublished(target.value)}
+            />
+          </label>
         </div>
         <div>
-          <input value={genre} onChange={({ target }) => setGenre(target.value)} />
+          <label>
+            genre
+            <input value={genre} onChange={({ target }) => setGenre(target.value)} />
+          </label>
           <button onClick={addGenre} type="button">
             add genre
           </button>

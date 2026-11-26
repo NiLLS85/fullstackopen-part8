@@ -8,6 +8,9 @@ Es una pequeña biblioteca: un servidor GraphQL con Apollo Server y MongoDB, y u
 |---|---|
 | `library-backend` | Servidor GraphQL: Apollo Server 5 sobre Express, Mongoose, login con JWT y suscripciones por WebSocket |
 | `library-frontend` | Frontend en React (Vite) con Apollo Client 4 |
+| `tests-chapter4` | Pruebas automáticas del backend (del repositorio base del curso) |
+| `tests-chapter5` | Pruebas E2E con Playwright (del repositorio base del curso) |
+| `.github/workflows` | GitHub Actions que pasan las dos baterías de pruebas en cada push |
 
 ## Cómo arrancarlo
 
@@ -56,8 +59,22 @@ Vistas de autores y de libros con `useQuery`, formulario para añadir libros con
 
 - Fragmento `BookDetails` para no repetir los campos de un libro.
 - Servidor: Express más un servidor WebSocket (`graphql-ws`) y la suscripción `bookAdded`, que se publica al añadir un libro.
-- Cliente: las suscripciones van por WebSocket. Cuando llega un libro nuevo se muestra un aviso y se añade a la caché sin repetirlo, así que la lista se actualiza en todas las pestañas abiertas.
+- Cliente: las suscripciones van por WebSocket. Cuando llega un libro nuevo se añade a la caché sin repetirlo, así que la lista se actualiza en todas las pestañas abiertas, y se muestra un aviso si el libro lo ha añadido otra persona u otra pestaña.
 - Problema n+1: `allAuthors` cuenta los libros de todos los autores con una sola agregación de MongoDB, en lugar de una consulta por autor.
+
+## Pruebas automáticas
+
+La versión del curso en MOOC.fi trae un repositorio base ([fs-graphql](https://github.com/fullstack-hy2020/fs-graphql)) con dos carpetas de pruebas, que se copiaron tal cual. Las dos usan una base de datos MongoDB en memoria, así que no tocan la base de datos normal.
+
+```bash
+# Backend (capítulo 4): consultas y mutaciones con node --test
+cd tests-chapter4 && npm install && npm test
+
+# E2E (capítulo 5): arrancan solos el backend en modo test y el frontend
+cd tests-chapter5 && npm install && npx playwright install chromium && npx playwright test
+```
+
+Para las pruebas E2E el backend tiene la mutación `_resetDatabase`, que vacía la base de datos y solo funciona con `NODE_ENV=test`. Los campos de los formularios llevan etiquetas (`title`, `author`, `published`, `genre`, `username`, `password`, `born`) para que Playwright los encuentre. En `tests-chapter5` se subió `@playwright/test` a la 1.65, porque las versiones anteriores no instalan el navegador en el runner actual de GitHub.
 
 ## Uso de IA
 

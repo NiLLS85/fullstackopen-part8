@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useApolloClient, useSubscription } from '@apollo/client/react'
 import Authors from './components/Authors'
 import Books from './components/Books'
@@ -14,6 +14,8 @@ const App = () => {
   const [token, setToken] = useState(() => localStorage.getItem('library-user-token'))
   const [notification, setNotification] = useState(null)
   const client = useApolloClient()
+  // Títulos de los libros que ha añadido este usuario desde esta pestaña
+  const ownTitles = useRef(new Set())
 
   const notify = (message, type = 'error') => {
     setNotification({ message, type })
@@ -25,8 +27,12 @@ const App = () => {
   useSubscription(BOOK_ADDED, {
     onData: ({ data, client }) => {
       const addedBook = data.data.bookAdded
-      notify(`New book added: ${addedBook.title} by ${addedBook.author.name}`, 'info')
       addBookToCache(client.cache, addedBook)
+      // De los libros propios no se avisa: ya se ven en la lista al momento
+      if (ownTitles.current.delete(addedBook.title)) {
+        return
+      }
+      notify(`New book added: ${addedBook.title} by ${addedBook.author.name}`, 'info')
     },
   })
 
@@ -59,7 +65,11 @@ const App = () => {
 
       <Books show={page === 'books'} />
 
-      <NewBook show={page === 'add'} setError={notify} />
+      <NewBook
+        show={page === 'add'}
+        setError={notify}
+        onBookAdded={(title) => ownTitles.current.add(title)}
+      />
 
       <Recommend show={page === 'recommend'} />
 

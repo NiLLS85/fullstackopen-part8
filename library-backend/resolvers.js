@@ -124,6 +124,17 @@ const resolvers = {
       const userForToken = { username: user.username, id: user._id }
       return { value: jwt.sign(userForToken, process.env.JWT_SECRET) }
     },
+    // Solo para las pruebas automáticas (ejercicio 17): vacía la base de datos
+    // y únicamente funciona con NODE_ENV=test
+    _resetDatabase: async () => {
+      if (process.env.NODE_ENV !== 'test') {
+        throw new GraphQLError('_resetDatabase is only available in test mode')
+      }
+      await Author.deleteMany({})
+      await Book.deleteMany({})
+      await User.deleteMany({})
+      return true
+    },
   },
   Subscription: {
     bookAdded: {
