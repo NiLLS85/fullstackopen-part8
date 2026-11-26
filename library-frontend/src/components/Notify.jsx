@@ -1,8 +1,13 @@
-const Notify = ({ message }) => {
-  if (!message) {
+const Notify = ({ notification }) => {
+  if (!notification) {
     return null
   }
-  return <div style={{ color: 'red', margin: '10px 0' }}>{message}</div>
+  const color = notification.type === 'error' ? 'red' : 'green'
+  return (
+    <div className="notification" style={{ color, margin: '10px 0' }}>
+      {notification.message}
+    </div>
+  )
 }
 
 export default Notify

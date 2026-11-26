@@ -1,22 +1,34 @@
 import { useState } from 'react'
-import { useApolloClient } from '@apollo/client/react'
+import { useApolloClient, useSubscription } from '@apollo/client/react'
 import Authors from './components/Authors'
 import Books from './components/Books'
 import NewBook from './components/NewBook'
 import LoginForm from './components/LoginForm'
 import Recommend from './components/Recommend'
 import Notify from './components/Notify'
+import { BOOK_ADDED } from './queries'
+import { addBookToCache } from './cache'
 
 const App = () => {
   const [page, setPage] = useState('authors')
   const [token, setToken] = useState(() => localStorage.getItem('library-user-token'))
-  const [errorMessage, setErrorMessage] = useState(null)
+  const [notification, setNotification] = useState(null)
   const client = useApolloClient()
 
-  const notify = (message) => {
-    setErrorMessage(message)
-    setTimeout(() => setErrorMessage(null), 5000)
+  const notify = (message, type = 'error') => {
+    setNotification({ message, type })
+    setTimeout(() => setNotification(null), 5000)
   }
+
+  // Aviso y caché al día cuando el servidor anuncia un libro nuevo (8.24 y 8.25),
+  // también si lo ha añadido otra persona u otra pestaña
+  useSubscription(BOOK_ADDED, {
+    onData: ({ data, client }) => {
+      const addedBook = data.data.bookAdded
+      notify(`New book added: ${addedBook.title} by ${addedBook.author.name}`, 'info')
+      addBookToCache(client.cache, addedBook)
+    },
+  })
 
   const logout = () => {
     setToken(null)
@@ -41,7 +53,7 @@ const App = () => {
         )}
       </div>
 
-      <Notify message={errorMessage} />
+      <Notify notification={notification} />
 
       <Authors show={page === 'authors'} token={token} />
 
