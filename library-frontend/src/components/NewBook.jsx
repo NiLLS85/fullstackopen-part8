@@ -1,29 +1,38 @@
 import { useState } from 'react'
 import { useMutation } from '@apollo/client/react'
-import { ADD_BOOK, ALL_AUTHORS, ALL_BOOKS } from '../queries'
+import { ADD_BOOK, ALL_AUTHORS, ALL_GENRES } from '../queries'
+import { addBookToCache } from '../cache'
 
-const NewBook = (props) => {
+const NewBook = ({ show, setError }) => {
   const [title, setTitle] = useState('')
   const [author, setAuthor] = useState('')
   const [published, setPublished] = useState('')
   const [genre, setGenre] = useState('')
   const [genres, setGenres] = useState([])
 
-  // Tras añadir un libro se vuelven a pedir las listas de libros y autores (8.10)
   const [addBook] = useMutation(ADD_BOOK, {
-    refetchQueries: [{ query: ALL_BOOKS }, { query: ALL_AUTHORS }],
+    // Los autores y los géneros se vuelven a pedir; las listas de libros se actualizan en la caché
+    refetchQueries: [{ query: ALL_AUTHORS }, { query: ALL_GENRES }],
+    update: (cache, response) => {
+      addBookToCache(cache, response.data.addBook)
+    },
   })
 
-  if (!props.show) {
+  if (!show) {
     return null
   }
 
   const submit = async (event) => {
     event.preventDefault()
 
-    await addBook({
-      variables: { title, author, published: Number(published), genres },
-    })
+    try {
+      await addBook({
+        variables: { title, author, published: Number(published), genres },
+      })
+    } catch (error) {
+      setError(error.message)
+      return
+    }
 
     setTitle('')
     setPublished('')
@@ -42,17 +51,11 @@ const NewBook = (props) => {
       <form onSubmit={submit}>
         <div>
           title
-          <input
-            value={title}
-            onChange={({ target }) => setTitle(target.value)}
-          />
+          <input value={title} onChange={({ target }) => setTitle(target.value)} />
         </div>
         <div>
           author
-          <input
-            value={author}
-            onChange={({ target }) => setAuthor(target.value)}
-          />
+          <input value={author} onChange={({ target }) => setAuthor(target.value)} />
         </div>
         <div>
           published
@@ -63,10 +66,7 @@ const NewBook = (props) => {
           />
         </div>
         <div>
-          <input
-            value={genre}
-            onChange={({ target }) => setGenre(target.value)}
-          />
+          <input value={genre} onChange={({ target }) => setGenre(target.value)} />
           <button onClick={addGenre} type="button">
             add genre
           </button>
